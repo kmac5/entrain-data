@@ -1,0 +1,19 @@
+\begin{tikzpicture}
+\pgfkeys{/pgf/number format/set thousands separator = {}}
+\node at (0.65,0.67) {Temperature};
+\node at (0.6,0.3) {($^\circ$C)};
+\begin{axis}[
+    hide axis,
+    scale only axis,
+    height=0pt,
+    width=0pt,
+    colorbar,
+    point meta min=21.1,
+    point meta max=816,
+    colorbar style={
+        height=7cm,
+        ytick={100,200,300,...,800}}
+    ]
+    \addplot [draw=none] coordinates {(0,0)};
+\end{axis}
+\end{tikzpicture}

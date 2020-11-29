@@ -1,0 +1,18 @@
+\begin{tikzpicture}
+\node at (0.45,0.67) {Temperature};
+\node at (0.4,0.3) {($^\circ$F)};
+\begin{axis}[
+    hide axis,
+    scale only axis,
+    height=0pt,
+    width=0pt,
+    colorbar,
+    point meta min=68,
+    point meta max=800,
+    colorbar style={
+        height=5.5cm,
+        ytick={100,200,300,...,800}
+    }]
+    \addplot [draw=none] coordinates {(0,0)};
+\end{axis}
+\end{tikzpicture}

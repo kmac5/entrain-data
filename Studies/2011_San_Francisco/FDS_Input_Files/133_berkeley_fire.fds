@@ -1,0 +1,677 @@
+&HEAD CHID='133_berkeley_fire', TITLE='133_berkeley_fire' / 
+
+&MESH IJK=115, 50, 36, XB=-2, 9.5, -2.0, 3.0, -5.6, -2.0 /
+&MESH IJK=115, 50, 32, XB=-2, 9.5, -2.0, 3.0, -2.0,  1.2 /
+&MESH IJK=115, 50, 34, XB=-2, 9.5, -2.0, 3.0,  1.2,  4.6 /
+&MESH IJK=115, 50, 34, XB=-2, 9.5, -2.0, 3.0,  4.6,  8.0 /
+
+&MESH IJK=115, 60, 36, XB=-2, 9.5, 3.0, 9.0, -5.6, -2.0 /
+&MESH IJK=115, 60, 32, XB=-2, 9.5, 3.0, 9.0, -2.0,  1.2 /
+&MESH IJK=115, 60, 34, XB=-2, 9.5, 3.0, 9.0,  1.2,  4.6 /
+&MESH IJK=115, 60, 34, XB=-2, 9.5, 3.0, 9.0,  4.6,  8.0 /
+
+&MESH IJK=115, 55, 36, XB=-2, 9.5, 9.0, 14.5, -5.6, -2.0 /
+&MESH IJK=115, 55, 32, XB=-2, 9.5, 9.0, 14.5, -2.0,  1.2 /
+&MESH IJK=115, 55, 34, XB=-2, 9.5, 9.0, 14.5,  1.2,  4.6 /
+&MESH IJK=115, 55, 34, XB=-2, 9.5, 9.0, 14.5,  4.6,  8.0 /
+
+&MESH IJK=115, 55, 36, XB=-2, 9.5, 14.5, 20.0, -5.6, -2.0 /
+&MESH IJK=115, 55, 32, XB=-2, 9.5, 14.5, 20.0, -2.0,  1.2 /
+&MESH IJK=115, 55, 34, XB=-2, 9.5, 14.5, 20.0,  1.2,  4.6 /
+&MESH IJK=115, 55, 34, XB=-2, 9.5, 14.5, 20.0,  4.6,  8.0 /
+
+# Simulation start time corresponding to LODD report - 10:53:00, t_0 (hh:mm:ss)
+# Simulation end time corresponding to LODD report   - 11:02:00, water on fire (hh:mm:ss)
+# Simulation duration - 00:09:00 (hh:mm:ss)
+&TIME T_END=540 /
+
+&DUMP NFRAMES=1080, DT_HRR=1, DT_DEVC=1 /
+
+# SUPPRESSION=.FALSE is needed with more than one gas phase reaction
+&MISC SUPPRESSION=.FALSE./
+
+#  =============
+#  = Reactions =
+#  =============
+
+&SPEC ID = 'POLYURETHANE',    FORMULA = 'CH1.8O0.30N0.05' /
+&SPEC ID = 'WOOD',            FORMULA = 'CH1.7O0.74N0.002' /
+&SPEC ID = 'OXYGEN',          LUMPED_COMPONENT_ONLY = .TRUE. /
+&SPEC ID = 'NITROGEN',        LUMPED_COMPONENT_ONLY = .TRUE. /
+&SPEC ID = 'WATER VAPOR',     LUMPED_COMPONENT_ONLY = .TRUE. /
+&SPEC ID = 'CARBON MONOXIDE', LUMPED_COMPONENT_ONLY = .TRUE. /
+&SPEC ID = 'CARBON DIOXIDE',  LUMPED_COMPONENT_ONLY = .TRUE. /
+&SPEC ID = 'SOOT',            LUMPED_COMPONENT_ONLY = .TRUE. /
+
+&SPEC ID = 'AIR',
+      SPEC_ID = 'OXYGEN','NITROGEN','WATER VAPOR','CARBON DIOXIDE',
+      VOLUME_FRACTION = 0.208057, 0.783214, 0.008342, 0.000387,
+      BACKGROUND = .TRUE. /
+
+# Polyurethane reaction (GM21, SFPE HB, 4th ed.)
+# Soot yield of 0.131
+# CO yield of 0.010
+
+&SPEC ID = 'PRODUCTS_POLYURETHANE',
+    SPEC_ID = 'NITROGEN','WATER VAPOR','CARBON DIOXIDE','CARBON MONOXIDE','SOOT',
+    VOLUME_FRACTION = 0.678838, 0.155754, 0.129475, 0.001139, 0.034794 /
+
+&REAC ID = 'POLYURETHANE'
+    FUEL = 'POLYURETHANE',
+    HEAT_OF_COMBUSTION = 26200,
+    SPEC_ID_NU = 'POLYURETHANE','AIR','PRODUCTS_POLYURETHANE'
+    NU = -1, -5.218633, 6.057861 /
+
+# Wood reaction (SFPE HB, 4th ed.)
+# Soot yield of 0.015
+# CO yield of 0.004
+
+&SPEC ID = 'PRODUCTS_WOOD',
+    SPEC_ID = 'NITROGEN','WATER VAPOR','CARBON DIOXIDE','CARBON MONOXIDE','SOOT',
+    VOLUME_FRACTION = 0.670128, 0.155268, 0.168397, 0.000637, 0.005570 /
+
+&REAC ID = 'WOOD'
+    FUEL = 'WOOD',
+    HEAT_OF_COMBUSTION = 16400,
+    SPEC_ID_NU = 'WOOD','AIR','PRODUCTS_WOOD'
+    NU = -1, -4.908330, 5.738119 /
+
+#  =========
+#  = Fires =
+#  =========
+
+&SURF ID='COUCH_RIGHT_INITIAL',    SPEC_ID='POLYURETHANE', MASS_FLUX = 5.271815E-6, RAMP_MF='COUCH_RIGHT_INITIAL_RAMP'    / Growth up to 5 MW, then constant 5 MW after 327 s
+&SURF ID='COUCH_MIDDLE_FLASHOVER', SPEC_ID='POLYURETHANE', MASS_FLUX = 1.037172E-5, RAMP_MF='COUCH_MIDDLE_FLASHOVER_RAMP' / Peak HRR of 5 MW
+&SURF ID='COUCH_LEFT_FLASHOVER',   SPEC_ID='POLYURETHANE', MASS_FLUX = 5.271815E-6, RAMP_MF='COUCH_LEFT_FLASHOVER_RAMP'   / Peak HRR of 5 MW
+&SURF ID='LOUNGE_FLASHOVER',       SPEC_ID='POLYURETHANE', MASS_FLUX = 7.853485E-6, RAMP_MF='LOUNGE_FLASHOVER_RAMP'       / Peak HRR of 2 MW
+&SURF ID='CHAIR_FLASHOVER',        SPEC_ID='POLYURETHANE', MASS_FLUX = 7.918660E-6, RAMP_MF='CHAIR_FLASHOVER_RAMP'        / Peak HRR of 2 MW
+&SURF ID='WOOD_EXTERIOR',          SPEC_ID='WOOD',         MASS_FLUX = 0.003049,    RAMP_MF='WOOD_EXTERIOR_RAMP'          / Exterior basement porch and siding, based on HRRPUA of 50 kW/m^2 for wood
+
+&OBST XB=5.3, 6.2, 15.6, 15.8, -2.8, -2.1, SURF_ID='COUCH_RIGHT_INITIAL', COLOR='BROWN 4' / Arm
+&OBST XB=5.3, 6.0, 13.4, 15.6, -2.8, -2.4, SURF_ID='COUCH_RIGHT_INITIAL', COLOR='BROWN 4' / Cushion
+&OBST XB=6.0, 6.2, 13.4, 15.6, -2.8, -2.1, SURF_ID='COUCH_RIGHT_INITIAL', COLOR='BROWN 4' / Back
+&OBST XB=5.3, 6.2, 13.2, 13.4, -2.8, -2.1, SURF_ID='COUCH_RIGHT_INITIAL', COLOR='BROWN 4' / Back
+
+&OBST XB=3.7, 5.3, 13.4, 14.1, -2.8, -2.4, SURF_ID='COUCH_MIDDLE_FLASHOVER', COLOR='BROWN 4' / Cushion
+&OBST XB=3.7, 5.3, 13.2, 13.4, -2.8, -2.1, SURF_ID='COUCH_MIDDLE_FLASHOVER', COLOR='BROWN 4' / Back
+
+&OBST XB=2.8, 3.7, 15.6, 15.8, -2.8, -2.1, SURF_ID='COUCH_LEFT_FLASHOVER', COLOR='BROWN 4' / Arm
+&OBST XB=3.0, 3.7, 13.4, 15.6, -2.8, -2.4, SURF_ID='COUCH_LEFT_FLASHOVER', COLOR='BROWN 4' / Cushion
+&OBST XB=2.8, 3.0, 13.4, 15.6, -2.8, -2.1, SURF_ID='COUCH_LEFT_FLASHOVER', COLOR='BROWN 4' / Back
+&OBST XB=2.8, 3.7, 13.2, 13.4, -2.8, -2.1, SURF_ID='COUCH_LEFT_FLASHOVER', COLOR='BROWN 4' / Back
+
+&OBST XB=2.8, 3.0, 9.2, 9.9, -2.8, -2.1, SURF_ID='LOUNGE_FLASHOVER', COLOR='BROWN 4' / Back
+&OBST XB=2.8, 3.7, 9.0, 9.2, -2.8, -2.1, SURF_ID='LOUNGE_FLASHOVER', COLOR='BROWN 4' / Arm
+&OBST XB=3.0, 4.6, 9.0, 9.9, -2.8, -2.4, SURF_ID='LOUNGE_FLASHOVER', COLOR='BROWN 4' / Cushion
+
+&OBST XB=7.2, 7.9, 16.6, 16.8, -2.8, -2.1, SURF_ID='CHAIR_FLASHOVER', COLOR='BROWN 4' / Arm
+&OBST XB=7.9, 8.1, 15.8, 16.8, -2.8, -1.9, SURF_ID='CHAIR_FLASHOVER', COLOR='BROWN 4' / Back
+&OBST XB=7.0, 7.9, 15.8, 16.8, -2.8, -2.4, SURF_ID='CHAIR_FLASHOVER', COLOR='BROWN 4' / Cushion
+&OBST XB=7.2, 7.9, 15.8, 16.0, -2.8, -2.1, SURF_ID='CHAIR_FLASHOVER', COLOR='BROWN 4' / Arm
+
+&OBST XB=1.00, 7.60, 17.20, 18.30, -3.20, -2.80, SURF_IDS='WOOD_EXTERIOR','WALL','WALL', COLOR='WHEAT 3' / Balcony floor
+
+&OBST XB=1.00, 7.60, 18.20, 18.30, -2.00, -1.90, SURF_ID='WOOD_EXTERIOR', COLOR='WHEAT 3' / Balcony rail
+&OBST XB=1.00, 1.10, 17.20, 18.30, -2.00, -1.90, SURF_ID='WOOD_EXTERIOR', COLOR='WHEAT 3' / Balcony rail
+&OBST XB=7.50, 7.60, 17.20, 18.30, -2.00, -1.90, SURF_ID='WOOD_EXTERIOR', COLOR='WHEAT 3' / Balcony rail
+
+&VENT XB=0.00, 8.50, 17.20, 17.70, -0.40, -0.40, SURF_ID='WOOD_EXTERIOR', COLOR='DARK SEA GREEN 4' / Exterior basement eave
+
+&VENT XB=2.90, 3.10, 17.10, 17.10, -2.80, -0.70, SURF_ID='WOOD_EXTERIOR', COLOR='WHEAT 3'         / Window column
+&VENT XB=2.90, 3.10, 17.20, 17.20, -2.80, -0.70, SURF_ID='WOOD_EXTERIOR', COLOR='WHEAT 3'         / Window column
+&VENT XB=2.90, 2.90, 17.10, 17.20, -2.80, -0.70, SURF_ID='WOOD_EXTERIOR', COLOR='WHEAT 3', IOR=-1 / Window column
+&VENT XB=3.10, 3.10, 17.10, 17.20, -2.80, -0.70, SURF_ID='WOOD_EXTERIOR', COLOR='WHEAT 3', IOR= 1 / Window column
+
+&VENT XB=4.00, 4.20, 17.10, 17.10, -2.80, -0.70, SURF_ID='WOOD_EXTERIOR', COLOR='WHEAT 3'         / Window column
+&VENT XB=4.00, 4.20, 17.20, 17.20, -2.80, -0.70, SURF_ID='WOOD_EXTERIOR', COLOR='WHEAT 3'         / Window column
+&VENT XB=4.00, 4.00, 17.10, 17.20, -2.80, -0.70, SURF_ID='WOOD_EXTERIOR', COLOR='WHEAT 3', IOR=-1 / Window column
+&VENT XB=4.20, 4.20, 17.10, 17.20, -2.80, -0.70, SURF_ID='WOOD_EXTERIOR', COLOR='WHEAT 3', IOR= 1 / Window column
+
+&VENT XB=5.20, 5.40, 17.10, 17.10, -2.80, -0.70, SURF_ID='WOOD_EXTERIOR', COLOR='WHEAT 3'         / Window column
+&VENT XB=5.20, 5.40, 17.20, 17.20, -2.80, -0.70, SURF_ID='WOOD_EXTERIOR', COLOR='WHEAT 3'         / Window column
+&VENT XB=5.20, 5.20, 17.10, 17.20, -2.80, -0.70, SURF_ID='WOOD_EXTERIOR', COLOR='WHEAT 3', IOR=-1 / Window column
+&VENT XB=5.40, 5.40, 17.10, 17.20, -2.80, -0.70, SURF_ID='WOOD_EXTERIOR', COLOR='WHEAT 3', IOR= 1 / Window column
+
+#  ====================================
+#  = Material and surface definitions =
+#  ====================================
+
+&MATL ID          = 'GYPSUM'
+    FYI           = 'Wakili - Journal of Fire Sciences 2007' 
+    CONDUCTIVITY  = 0.28
+    SPECIFIC_HEAT = 1.00
+    DENSITY       = 810. /
+
+&SURF ID      = 'WALL'
+    DEFAULT   = .TRUE.
+    COLOR     = 'DARK SEA GREEN 4'
+    MATL_ID   = 'GYPSUM'
+    THICKNESS = 0.012 /
+
+#  ===========
+#  = Markers =
+#  ===========
+
+&OBST XB=6.7, 7.0,  7.00,  7.30, 0.0, 0.01, COLOR='BLUE' / Firefighter 1
+&OBST XB=5.6, 5.9, 10.35, 10.65, 0.0, 0.01, COLOR='BLUE' / Firefighter 2
+
+#  =========
+#  = Doors =
+#  =========
+
+&HOLE XB=0.76, 5.64, -0.01, 0.11, 0.00, 2.13, COLOR='BURLY WOOD 4', DEVC_ID='TIMER_GARAGE_DOOR' / Garage door
+&DEVC ID='TIMER_GARAGE_DOOR', QUANTITY='TIME', XYZ=0,0,0, INITIAL_STATE=.FALSE., SETPOINT=1 /
+
+&HOLE XB=6.48, 7.24, 4.75, 4.87, 2.00, 4.06, COLOR='BURLY WOOD 4', DEVC_ID='TIMER_FRONT_DOOR' / Front entry door
+&DEVC ID='TIMER_FRONT_DOOR', QUANTITY='TIME', XYZ=0,0,0, INITIAL_STATE=.FALSE., SETPOINT=1 /
+
+&HOLE XB=6.38, 7.19,  8.91,  9.03, 0.00, 2.06, COLOR='BURLY WOOD 4', DEVC_ID='TIMER_SUB_LEVEL_1' / Laundry interior door
+&DEVC ID='TIMER_SUB_LEVEL_1', QUANTITY='TIME', XYZ=0,0,0, INITIAL_STATE=.FALSE., SETPOINT=1 /
+
+&HOLE XB=5.36, 6.17,  6.82,  6.94, 0.00, 2.06, COLOR='BURLY WOOD 4', DEVC_ID='TIMER_GARAGE_ENTRY' / Ground floor interior door from garage
+&DEVC ID='TIMER_GARAGE_ENTRY', QUANTITY='TIME', XYZ=0,0,0, INITIAL_STATE=.FALSE., SETPOINT=1 /
+
+&HOLE XB=-0.01, 0.11, 9.40, 10.21, -2.80, -0.74, COLOR='BURLY WOOD 4', DEVC_ID='TIMER_BASEMENT_ENTRY' / Sub-Level 1 exterior door
+&DEVC ID='TIMER_BASEMENT_ENTRY', QUANTITY='TIME', XYZ=0,0,0, INITIAL_STATE=.FALSE., SETPOINT=383 /
+
+&OBST XB=6.04, 6.16,  8.56,  9.37, 3.00, 5.06, COLOR='BURLY WOOD 4' / Top floor interior door
+&OBST XB=7.21, 7.33,  8.97,  9.78, 3.00, 5.06, COLOR='BURLY WOOD 4' / Top floor interior door
+&OBST XB=3.98, 4.79,  9.36,  9.48, 3.00, 5.06, COLOR='BURLY WOOD 4' / Top floor interior door
+&OBST XB=5.13, 5.94,  9.36,  9.48, 3.00, 5.06, COLOR='BURLY WOOD 4' / Top floor interior door
+&HOLE XB=0.83, 1.64, 12.37, 12.49, 3.00, 5.06, COLOR='BURLY WOOD 4' / Top floor interior door
+&OBST XB=7.54, 8.35,  4.75,  4.87, 2.00, 4.06, COLOR='BURLY WOOD 4' / Top floor interior closet door
+
+&OBST XB=5.36, 6.17,  8.91,  9.03, 0.00, 2.06, COLOR='BURLY WOOD 4' / Ground floor interior door
+&OBST XB=5.05, 5.17,  9.31, 10.12, 0.00, 2.06, COLOR='BURLY WOOD 4' / Ground floor interior door
+&OBST XB=2.56, 2.68, 10.53, 11.34, 0.00, 2.06, COLOR='BURLY WOOD 4' / Ground floor interior door
+&OBST XB=6.37, 6.49, 11.16, 11.97, 0.00, 2.06, COLOR='BURLY WOOD 4' / Ground floor interior door
+&OBST XB=5.05, 5.17, 12.45, 13.26, 0.00, 2.06, COLOR='BURLY WOOD 4' / Ground floor interior door
+&OBST XB=5.46, 6.27, 13.34, 13.46, 0.00, 2.06, COLOR='BURLY WOOD 4' / Ground floor interior door
+
+&OBST XB= 5.37, 6.18, 6.74,  6.86, -2.80, -0.74, COLOR='BURLY WOOD 4' / Sub-Level 1 interior door
+&OBST XB= 2.25, 2.37, 6.93,  7.74, -2.80, -0.74, COLOR='BURLY WOOD 4' / Sub-Level 1 interior door
+&OBST XB= 6.45, 7.26, 8.37,  8.49, -2.80, -0.74, COLOR='BURLY WOOD 4' / Sub-Level 1 interior door
+
+&OBST XB=-0.01, 0.11, 15.60, 16.40, -5.60, -3.54, COLOR='BURLY WOOD 4' / Sub-Level 2 exterior door
+
+#  ===========
+#  = Windows =
+#  ===========
+
+&OBST XB= 6.89, 7.30,  4.87,  4.99, 4.72, 5.56, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Top floor window above entry door
+&HOLE XB= 6.89, 7.30,  4.87,  4.99, 4.72, 5.56, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Top floor window above entry door
+&OBST XB= 7.49, 7.90,  4.87,  4.99, 4.72, 5.56, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Top floor window above entry door
+&HOLE XB= 7.49, 7.90,  4.87,  4.99, 4.72, 5.56, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Top floor window above entry door
+&OBST XB=-0.01, 0.21,  9.49, 10.10, 4.45, 5.06, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Top floor Side B window
+&HOLE XB=-0.01, 0.21,  9.49, 10.10, 4.45, 5.06, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Top floor Side B window
+&OBST XB=-0.01, 0.21, 15.99, 17.01, 3.92, 5.06, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Top floor Side B window
+&HOLE XB=-0.01, 0.21, 15.99, 17.01, 3.92, 5.06, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Top floor Side B window
+&HOLE XB= 2.01, 2.92, 12.37, 12.49, 4.15, 5.06, COLOR='IVORY 1'                                        / Top floor interior window
+&OBST XB= 1.22, 1.78, 17.62, 17.74, 3.40, 5.06, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Top floor Side C window 1
+&HOLE XB= 1.22, 1.78, 17.62, 17.74, 3.40, 5.06, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Top floor Side C window 1
+&OBST XB= 1.78, 2.90, 17.62, 17.74, 3.40, 5.06, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Top floor Side C window 1
+&HOLE XB= 1.78, 2.90, 17.62, 17.74, 3.40, 5.06, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Top floor Side C window 1
+&OBST XB= 2.90, 3.46, 17.62, 17.74, 3.40, 5.06, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Top floor Side C window 1
+&HOLE XB= 2.90, 3.46, 17.62, 17.74, 3.40, 5.06, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Top floor Side C window 1
+&OBST XB= 4.68, 7.32, 17.61, 17.75, 5.06, 5.36, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Top floor Side C window 2
+&HOLE XB= 4.68, 7.32, 17.61, 17.75, 5.06, 5.36, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Top floor Side C window 2
+&OBST XB= 4.68, 5.56, 17.62, 17.74, 3.40, 5.06, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Top floor Side C window 2
+&HOLE XB= 4.68, 5.56, 17.62, 17.74, 3.40, 5.06, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Top floor Side C window 2
+&OBST XB= 5.56, 6.44, 17.62, 17.74, 3.40, 5.06, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Top floor Side C window 2
+&HOLE XB= 5.56, 6.44, 17.62, 17.74, 3.40, 5.06, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Top floor Side C window 2
+&OBST XB= 6.44, 7.32, 17.62, 17.74, 3.40, 5.06, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Top floor Side C window 2
+&HOLE XB= 6.44, 7.32, 17.62, 17.74, 3.40, 5.06, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Top floor Side C window 2
+&OBST XB= 1.22, 2.31,  6.82,  6.94, 3.61, 5.06, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Top floor roof deck window 1
+&HOLE XB= 1.22, 2.31,  6.82,  6.94, 3.61, 5.06, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Top floor roof deck window 1
+&OBST XB= 1.22, 2.31,  6.82,  6.94, 5.06, 5.36, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Top floor roof deck window 1
+&HOLE XB= 1.22, 2.31,  6.82,  6.94, 5.06, 5.36, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Top floor roof deck window 1
+&OBST XB= 2.92, 5.16,  6.82,  6.94, 3.30, 5.06, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Top floor roof deck window 2
+&HOLE XB= 2.92, 5.16,  6.82,  6.94, 3.30, 5.06, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Top floor roof deck window 2
+&OBST XB= 2.92, 5.16,  6.82,  6.94, 5.06, 5.36, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Top floor roof deck window 2
+&HOLE XB= 2.92, 5.16,  6.82,  6.94, 5.06, 5.36, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Top floor roof deck window 2
+
+&OBST XB=-0.01, 0.11,  8.03,  9.17, 0.43, 2.06, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Ground floor Side B window
+&HOLE XB=-0.01, 0.11,  8.03,  9.17, 0.43, 2.06, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Ground floor Side B window
+&OBST XB=-0.01, 0.11, 11.10, 11.51, 1.35, 2.06, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Ground floor Side B window
+&HOLE XB=-0.01, 0.11, 11.10, 11.51, 1.35, 2.06, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Ground floor Side B window
+&OBST XB=-0.01, 0.11, 16.85, 17.46, 0.61, 2.06, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Ground floor Side B window
+&HOLE XB=-0.01, 0.11, 16.85, 17.46, 0.61, 2.06, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Ground floor Side B window
+&OBST XB= 1.21, 1.77, 17.62, 17.74, 0.61, 2.06, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Ground floor Side C window 1
+&HOLE XB= 1.21, 1.77, 17.62, 17.74, 0.61, 2.06, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Ground floor Side C window 1
+&OBST XB= 1.77, 2.89, 17.62, 17.74, 0.61, 2.06, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Ground floor Side C window 1
+&HOLE XB= 1.77, 2.89, 17.62, 17.74, 0.61, 2.06, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Ground floor Side C window 1
+&OBST XB= 2.89, 3.45, 17.62, 17.74, 0.61, 2.06, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Ground floor Side C window 1
+&HOLE XB= 2.89, 3.45, 17.62, 17.74, 0.61, 2.06, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Ground floor Side C window 1
+&OBST XB= 5.71, 6.52, 17.62, 17.74, 0.92, 2.06, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Ground floor Side C window 2
+&HOLE XB= 5.71, 6.52, 17.62, 17.74, 0.92, 2.06, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Ground floor Side C window 2
+&OBST XB= 6.52, 7.34, 17.62, 17.74, 0.92, 2.06, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Ground floor Side C window 2
+&HOLE XB= 6.52, 7.34, 17.62, 17.74, 0.92, 2.06, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Ground floor Side C window 2
+
+&OBST XB=7.92, 8.38,  3.50,  3.72,  0.42,  1.13, COLOR='IVORY 1', TRANSPARENCY=0.5, PERMIT_HOLE=.FALSE. / Sub-Level 1 Side A window
+&HOLE XB=7.92, 8.38,  3.50,  3.72,  0.42,  1.13, COLOR='IVORY 1', TRANSPARENCY=0.5                      / Sub-Level 1 Side A window
+
+&HOLE XB=1.20, 2.10, 17.10, 17.20, -2.80, -0.74, COLOR='IVORY 1', TRANSPARENCY=0.5, DEVC_ID='WINDOW_SUB_C_1' / Sub-Level 1 Side C sliding door 1 south
+&DEVC ID='WINDOW_SUB_C_1', QUANTITY='TIME', XYZ=0,0,0, INITIAL_STATE=.FALSE., SETPOINT=450                   / Sub-Level 1 Side C sliding door 1
+&HOLE XB=2.10, 2.90, 17.10, 17.20, -2.80, -0.74, COLOR='IVORY 1', TRANSPARENCY=0.5, DEVC_ID='WINDOW_SUB_C_2' / Sub-Level 1 Side C sliding door 2
+&DEVC ID='WINDOW_SUB_C_2', QUANTITY='TIME', XYZ=0,0,0, INITIAL_STATE=.FALSE., SETPOINT=450                   / Sub-Level 1 Side C sliding door 2
+&HOLE XB=3.10, 4.00, 17.10, 17.20, -2.80, -0.74, COLOR='IVORY 1', TRANSPARENCY=0.5, DEVC_ID='WINDOW_SUB_C_3' / Sub-Level 1 Side C window 3
+&DEVC ID='WINDOW_SUB_C_3', QUANTITY='TIME', XYZ=0,0,0, INITIAL_STATE=.FALSE., SETPOINT=440                   / Sub-Level 1 Side C window 3
+&HOLE XB=4.20, 5.20, 17.10, 17.20, -2.80, -0.74, COLOR='IVORY 1', TRANSPARENCY=0.5, DEVC_ID='WINDOW_SUB_C_4' / Sub-Level 1 Side C window 4
+&DEVC ID='WINDOW_SUB_C_4', QUANTITY='TIME', XYZ=0,0,0, INITIAL_STATE=.FALSE., SETPOINT=418                   / Sub-Level 1 Side C window 4
+&HOLE XB=5.40, 6.20, 17.10, 17.20, -2.80, -0.74, COLOR='IVORY 1', TRANSPARENCY=0.5, DEVC_ID='WINDOW_SUB_C_5' / Sub-Level 1 Side C sliding door 5
+&DEVC ID='WINDOW_SUB_C_5', QUANTITY='TIME', XYZ=0,0,0, INITIAL_STATE=.FALSE., SETPOINT=383                   / Sub-Level 1 Side C sliding door 5
+&HOLE XB=6.20, 7.10, 17.10, 17.20, -2.80, -0.74, COLOR='IVORY 1', TRANSPARENCY=0.5, DEVC_ID='WINDOW_SUB_C_6' / Sub-Level 1 Side C sliding door 6 north
+&DEVC ID='WINDOW_SUB_C_6', QUANTITY='TIME', XYZ=0,0,0, INITIAL_STATE=.FALSE., SETPOINT=342                   / Sub-Level 1 Side C sliding door 6 north
+
+#  ==========
+#  = Stairs =
+#  ==========
+
+&OBST XB=6.38, 7.34, 1.37, 1.57, 0.00, 0.20, MULT_ID='Entry_Stairs' / Entry stairs
+&MULT ID='Entry_Stairs', DXB=0.0, 0.0, 0.2, 0.2, 0.2, 0.2, N_UPPER=8 /
+
+&OBST XB=7.44, 8.43, 8.29, 8.49, 0.00, 0.20, MULT_ID='Stairs_To_Ground_Floor' / Stairs down towards ground floor
+&MULT ID='Stairs_To_Ground_Floor', DXB=0.0, 0.0, -0.2, -0.2, 0.2, 0.2, N_UPPER=8 /
+
+&OBST XB=6.38, 7.34, 6.19, 6.39, 2.00, 2.20, MULT_ID='Stairs_To_Top_Floor' / Stairs up towards top floor
+&MULT ID='Stairs_To_Top_Floor', DXB=0.0, 0.0, 0.2, 0.2, 0.2, 0.2, N_UPPER=3 /
+
+&OBST XB=7.44, 8.43, 7.94, 8.14, -2.80, -2.60, MULT_ID='Stairs_Up_To_Ground_Floor' / Stairs up towards landing
+&MULT ID='Stairs_Up_To_Ground_Floor', DXB=0.0, 0.0, -0.2, -0.2, 0.2, 0.2, N_UPPER=8 /
+
+&OBST XB=6.38, 7.34, 6.20, 6.40, -0.80, -0.60, MULT_ID='Stairs_Up_Towards_Landing', PERMIT_HOLE=.FALSE. / Stairs up towards ground floor
+&MULT ID='Stairs_Up_Towards_Landing', DXB=0.0, 0.0, 0.2, 0.2, 0.2, 0.2, N_UPPER=2 /
+
+#  ======================
+#  = Top floor geometry =
+#  ======================
+
+&OBST XB=7.34, 7.44, 6.28, 9.02, 2.00, 3.00 / Stair wall
+
+&OBST XB=0.00, 6.38,  6.83,  6.93, 3.00, 5.74 / Interior wall
+&OBST XB=6.05, 6.25,  8.33,  8.43, 3.00, 5.74 / Interior wall
+&OBST XB=7.22, 8.53,  7.84,  7.94, 3.00, 5.74 / Interior wall
+&OBST XB=7.22, 8.53, 10.89, 10.99, 3.00, 5.74 / Interior wall
+&OBST XB=3.76, 6.15,  9.37,  9.47, 3.00, 5.74 / Interior wall
+&OBST XB=3.76, 6.15, 10.89, 10.99, 3.00, 5.74 / Interior wall
+&OBST XB=0.00, 3.86, 12.38, 12.48, 3.00, 5.74 / Interior wall
+
+&OBST XB=0.00, 6.28, 0.00, 0.10, 4.12, 4.22 / Front roof deck rail
+&OBST XB=0.00, 6.28, 0.00, 0.10, 3.00, 3.72 / Front roof deck wall
+&OBST XB=0.00, 0.50, 0.00, 6.83, 3.00, 4.52 / Front roof deck wall
+&OBST XB=5.78, 6.28, 0.00, 6.83, 3.00, 4.52 / Front roof deck wall
+
+&OBST XB=6.28, 6.38, 3.51,  8.43, 3.00, 5.94 / Interior wall
+&OBST XB=6.05, 6.15, 8.33, 10.99, 3.00, 5.74 / Interior wall
+&OBST XB=4.93, 5.03, 9.37, 10.99, 3.00, 5.74 / Interior wall
+&OBST XB=3.76, 3.86, 9.37, 12.48, 3.00, 5.74 / Interior wall
+&OBST XB=7.22, 7.32, 7.94, 10.99, 3.00, 5.74 / Interior wall
+
+&OBST XB=0.00, 6.38,  0.00, 17.73, 2.44, 3.00 / Floor
+&OBST XB=6.38, 7.34,  7.00, 17.73, 2.44, 3.00 / Floor
+&OBST XB=7.32, 8.53,  7.94, 17.73, 2.44, 3.00 / Floor
+&OBST XB=0.00, 6.38,  6.83, 17.73, 5.74, 5.94 / Ceiling
+&OBST XB=6.38, 8.53,  3.50, 17.73, 5.74, 5.94 / Ceiling
+&HOLE XB=6.28, 8.53,  3.50,  4.87, 4.82, 5.94 / Entry overhang
+&OBST XB=6.28, 8.53,  4.88,  4.98, 4.52, 5.94 / Wall above entry
+&OBST XB=0.00, 3.76,  9.37, 17.73, 5.44, 5.94 / 2.44 m reduced ceiling
+&OBST XB=6.28, 8.53,  3.51,  4.76, 4.52, 5.74 / Wall near front door
+&OBST XB=0.00, 0.20,  6.83, 17.73, 3.00, 5.74 / Side B wall
+&OBST XB=0.00, 8.53, 17.63, 17.73, 2.44, 5.74 / Side C wall
+&OBST XB=8.43, 8.53,  3.61, 17.73, 2.44, 5.74 / Side D wall
+
+&OBST XB=1.07, 7.47, 17.73, 18.55, 2.64, 3.00 / Balcony floor
+&OBST XB=1.07, 7.47, 18.45, 18.55, 4.12, 4.22 / Balcony rail
+&OBST XB=1.07, 1.17, 17.73, 18.55, 4.12, 4.22 / Balcony rail
+&OBST XB=7.37, 7.47, 17.73, 18.55, 4.12, 4.22 / Balcony rail
+
+#  =========================
+#  = Ground floor geometry =
+#  =========================
+
+&OBST XB=6.28, 6.38, 0.00, 6.93,  2.00, 4.52 / Front wall
+&OBST XB=7.34, 7.44, 3.51, 4.86,  2.00, 4.52 / Front wall
+&OBST XB=6.38, 8.53, 4.76, 4.86,  2.00, 5.74 / Front wall
+&OBST XB=6.38, 8.53, 3.51, 3.71, -0.36, 2.00 / Front wall
+&OBST XB=7.44, 8.53, 3.51, 3.71,  2.00, 4.52 / Front wall
+
+&OBST XB=6.28, 6.38, 0.00, 6.93, 0.00, 2.00 / Stair wall
+&OBST XB=7.34, 7.44, 6.10, 9.02, 0.00, 2.00 / Stair wall
+
+&OBST XB=0.00, 6.38,  6.83,  6.93, 0.00, 2.44 / Interior wall
+&OBST XB=0.00, 5.16, 10.20, 10.30, 0.00, 2.44 / Interior wall
+&OBST XB=0.00, 1.78, 12.27, 12.37, 0.00, 2.44 / Interior wall
+&OBST XB=5.16, 6.38,  8.17,  8.27, 0.00, 2.44 / Interior wall
+&OBST XB=6.28, 6.38,  8.17,  9.02, 0.00, 2.44 / Interior wall
+&OBST XB=4.45, 7.34,  8.92,  9.02, 0.00, 2.44 / Interior wall
+&OBST XB=6.38, 8.53, 10.20, 10.30, 0.00, 2.44 / Interior wall
+&OBST XB=6.38, 8.53, 12.37, 12.47, 0.00, 2.44 / Interior wall
+&OBST XB=4.55, 6.38, 13.35, 13.45, 0.00, 2.44 / Interior wall
+&OBST XB=2.57, 5.16, 11.34, 11.54, 0.00, 2.44 / Interior wall
+&OBST XB=2.57, 3.05, 12.27, 12.37, 0.00, 2.44 / Interior wall
+
+&OBST XB=4.45, 4.55,  6.93,  7.24, 0.00, 2.44 / Interior wall
+&OBST XB=5.16, 5.26,  6.93,  9.02, 0.00, 2.44 / Interior wall
+&OBST XB=5.06, 5.16,  9.02, 10.35, 0.00, 2.44 / Interior wall
+&OBST XB=6.28, 6.38,  8.17,  8.27, 0.00, 2.44 / Interior wall
+&OBST XB=2.57, 2.67, 10.35, 12.37, 0.00, 2.44 / Interior wall
+&OBST XB=4.45, 4.55, 10.35, 11.34, 0.00, 2.44 / Interior wall
+&OBST XB=4.86, 5.06, 11.34, 12.37, 0.00, 2.44 / Interior wall
+&OBST XB=5.06, 5.16, 11.34, 12.37, 0.00, 2.44 / Interior wall
+&OBST XB=5.06, 5.16, 12.37, 13.35, 0.00, 2.44 / Interior wall
+&OBST XB=6.38, 6.48, 10.35, 13.45, 0.00, 2.44 / Interior wall
+&OBST XB=4.55, 4.65, 13.45, 17.73, 0.00, 2.44 / Interior wall
+
+&OBST XB=6.38, 7.34, 3.21, 6.19, 1.80, 2.00 / Entry landing
+&OBST XB=7.34, 8.43, 3.51, 6.70, 1.80, 2.00 / Entry landing
+
+&OBST XB=0.001, 6.380,  0.00, 17.73, -0.40, 0.00 / Floor
+&OBST XB=6.380, 8.530,  8.30, 17.73, -0.40, 0.00 / Floor
+&OBST XB=6.380, 7.340,  6.80,  8.30, -0.40, 0.00 / Floor
+&OBST XB=0.000, 6.380,  0.00,  0.10,  0.00, 2.44 / Side A wall
+&OBST XB=0.000, 0.200,  0.00, 17.73,  0.00, 2.44 / Side B wall
+&OBST XB=0.000, 8.530, 17.63, 17.73,  0.00, 2.44 / Side C wall
+&OBST XB=8.430, 8.530,  3.61, 17.73,  0.00, 2.44 / Side D wall
+
+#  ========================
+#  = Sub-Level 1 geometry =
+#  ========================
+
+&HOLE XB=6.38, 7.34, 3.71, 6.80, -0.40, 0.00 / Hole for stairs
+
+&OBST XB=6.28, 6.38, 3.51, 6.85, -1.00, 0.00 / Stair wall
+&OBST XB=7.34, 7.44, 6.10, 8.48, -2.80, 0.00 / Stair wall
+
+&OBST XB=6.38, 8.43, 3.51, 6.30, -1.00, -0.80 / Sub1-Ground landing
+
+&OBST XB=0.00, 4.04, 3.61, 3.71, -2.80, -0.36 / Interior wall
+&OBST XB=3.94, 4.04, 2.58, 3.71, -2.80, -0.36 / Interior wall
+&OBST XB=4.04, 6.38, 2.58, 2.68, -2.80, -0.36 / Interior wall
+
+&OBST XB=2.26, 2.36, 6.75, 8.48, -2.80, -0.36 / Interior wall
+&OBST XB=0.01, 6.38, 6.75, 6.85, -2.80, -0.36 / Interior wall
+&OBST XB=0.01, 7.44, 8.38, 8.48, -2.80, -0.36 / Interior wall
+
+&OBST XB=6.180, 6.381,  0.000,  3.710, -2.800, -0.360                         / Wall near front door
+&OBST XB=6.280, 8.529,  3.509,  3.710, -2.800, -0.360                         / Wall near front door
+&OBST XB=0.000, 6.380,  0.000, 17.220, -3.200, -2.800, COLOR='NAVAJO WHITE 1' / Floor
+&OBST XB=6.380, 8.530,  3.510, 17.220, -3.200, -2.800, COLOR='NAVAJO WHITE 1' / Floor
+&OBST XB=0.001, 6.379,  0.001,  0.200, -2.800, -0.360, COLOR='NAVAJO WHITE 1' / Side A wall
+&OBST XB=0.000, 0.200,  0.000,  3.710, -2.800, -0.360, COLOR='NAVAJO WHITE 1' / Side B wall
+&OBST XB=0.000, 0.100,  3.710, 17.220, -2.800, -0.360, COLOR='NAVAJO WHITE 1' / Side B wall
+&OBST XB=0.000, 8.530, 17.120, 17.220, -2.800, -0.360, COLOR='NAVAJO WHITE 1' / Side C wall
+&OBST XB=8.430, 8.530,  3.509, 17.220, -2.800, -0.360, COLOR='NAVAJO WHITE 1' / Side D wall
+&OBST XB=8.430, 8.530,  3.710,  8.300, -0.400,  0.000                         / Side D wall
+
+&OBST XB=-1.0, 0.0, 9.0, 10.6, -3.10, -2.80, COLOR='WHEAT 3' / Side door platform
+
+&OBST XB=-1.0, 0.0, 10.6, 10.8, -3.30, -3.10, MULT_ID='Side_Door_Stairs', COLOR='WHEAT 3' / Side door stairs
+&MULT ID='Side_Door_Stairs', DXB=0.0, 0.0, 0.2, 0.2, -0.2, -0.2, N_UPPER=30 /
+
+#  ========================
+#  = Sub-Level 2 geometry =
+#  ========================
+
+&OBST XB=0.000, 8.531, 3.500, 17.22, -5.600, -2.800, COLOR='NAVAJO WHITE 1' /
+
+#  ==============================
+#  = Street and outside terrain =
+#  ==============================
+
+&OBST XB=-5.0,  11.999, -5.0, 0.0, -5.6,  0.0, COLOR='DARK GRAY' / Street
+&OBST XB=-5.0,   0.000, -5.0, 3.5, -5.6,  0.0, COLOR='DARK GRAY' / Street
+&OBST XB= 6.38, 11.999, -5.0, 3.5, -5.6,  0.0, COLOR='DARK GRAY' / Street
+&OBST XB=-5.0,   6.400,  0.0, 3.5, -5.6, -3.2, COLOR='DARK GRAY' / Street
+
+&OBST XB=-5.0, 0.0, 3.5, 3.8, -5.6, 0.0, MULT_ID='Terrain_Bravo', COLOR='DARK GRAY' / Terrain
+&MULT ID='Terrain_Bravo', DXB=0.0, 0.0, 0.3, 0.3, 0.0, -0.2, N_UPPER=30 /
+
+#  =====================
+#  = Domain boundaries =
+#  =====================
+
+&VENT XB=-5, 12, -2, 20, -5.6, -5.6, SURF_ID='WALL', COLOR='DARK GRAY' / Ground
+&VENT MB='XMIN', SURF_ID='OPEN' /
+&VENT MB='XMAX', SURF_ID='OPEN' /
+&VENT MB='YMIN', SURF_ID='OPEN' /
+&VENT MB='YMAX', SURF_ID='OPEN' /
+&VENT MB='ZMAX', SURF_ID='OPEN' /
+
+#  =====================
+#  = Output quantities =
+#  =====================
+
+&BNDF QUANTITY='GAUGE HEAT FLUX' /
+&BNDF QUANTITY='WALL TEMPERATURE' /
+
+&SLCF PBX=2.60, QUANTITY='TEMPERATURE', VECTOR=.TRUE. /
+&SLCF PBX=2.60, QUANTITY='HRRPUV' /
+&SLCF PBX=2.60, QUANTITY='VELOCITY' /
+&SLCF PBX=2.60, QUANTITY='PRESSURE' /
+
+&SLCF PBX=4.45, QUANTITY='TEMPERATURE', VECTOR=.TRUE. /
+&SLCF PBX=4.45, QUANTITY='HRRPUV' /
+&SLCF PBX=4.45, QUANTITY='VELOCITY' /
+&SLCF PBX=4.45, QUANTITY='PRESSURE' /
+
+&SLCF PBX=6.85, QUANTITY='TEMPERATURE', VECTOR=.TRUE. / Firefighter 1
+&SLCF PBX=6.85, QUANTITY='VELOCITY' /
+&SLCF PBX=6.85, QUANTITY='PRESSURE' /
+
+&SLCF PBX=5.75, QUANTITY='TEMPERATURE', VECTOR=.TRUE. / Firefighter 2
+&SLCF PBX=5.75, QUANTITY='VELOCITY' /
+&SLCF PBX=5.75, QUANTITY='PRESSURE' /
+
+&SLCF XB=7.90, 7.90, 3.70, 4.87, -2.80, 1.80, QUANTITY='TEMPERATURE', VECTOR=.TRUE. / South stairs
+&SLCF XB=7.90, 7.90, 3.70, 4.87, -2.80, 1.80, QUANTITY='VELOCITY' /
+&SLCF XB=7.90, 7.90, 3.70, 4.87, -2.80, 1.80, QUANTITY='PRESSURE' /
+
+&SLCF XB=7.90, 7.90, 4.87, 7.80, -2.80, 4.52, QUANTITY='TEMPERATURE', VECTOR=.TRUE. / South stairs
+&SLCF XB=7.90, 7.90, 4.87, 7.80, -2.80, 4.52, QUANTITY='VELOCITY' /
+&SLCF XB=7.90, 7.90, 4.87, 7.80, -2.80, 4.52, QUANTITY='PRESSURE' /
+
+&SLCF XB=7.90, 7.90, 7.80, 10.20, -2.80, 2.44, QUANTITY='TEMPERATURE', VECTOR=.TRUE. / South stairs
+&SLCF XB=7.90, 7.90, 7.80, 10.20, -2.80, 2.44, QUANTITY='VELOCITY' /
+&SLCF XB=7.90, 7.90, 7.80, 10.20, -2.80, 2.44, QUANTITY='PRESSURE' /
+
+&SLCF PBZ= 4.37, QUANTITY='TEMPERATURE', VECTOR=.TRUE. / Top floor mid-level height (1.37 m from floor)
+&SLCF PBZ= 4.37, QUANTITY='VELOCITY' /
+&SLCF PBZ= 4.37, QUANTITY='PRESSURE' /
+
+&SLCF PBZ= 3.91, QUANTITY='TEMPERATURE', VECTOR=.TRUE. / Top floor 0.91 m from floor
+&SLCF PBZ= 3.91, QUANTITY='VELOCITY' /
+&SLCF PBZ= 3.91, QUANTITY='PRESSURE' /
+
+&SLCF PBZ= 3.61, QUANTITY='TEMPERATURE', VECTOR=.TRUE. / Top floor 0.61 m from floor
+&SLCF PBZ= 3.61, QUANTITY='VELOCITY' /
+&SLCF PBZ= 3.61, QUANTITY='PRESSURE' /
+
+&SLCF PBZ= 3.30, QUANTITY='TEMPERATURE', VECTOR=.TRUE. / Top floor 0.30 m from floor
+&SLCF PBZ= 3.30, QUANTITY='VELOCITY' /
+&SLCF PBZ= 3.30, QUANTITY='PRESSURE' /
+
+&SLCF PBZ= 1.22, QUANTITY='TEMPERATURE', VECTOR=.TRUE. / Ground floor mid-level height (1.22 m from floor)
+&SLCF PBZ= 1.22, QUANTITY='VELOCITY',    VECTOR=.TRUE. /
+&SLCF PBZ= 1.22, QUANTITY='PRESSURE',    VECTOR=.TRUE. /
+
+&SLCF PBZ= 0.91, QUANTITY='TEMPERATURE', VECTOR=.TRUE. / Ground floor 0.91 m from floor
+&SLCF PBZ= 0.91, QUANTITY='VELOCITY',    VECTOR=.TRUE. /
+&SLCF PBZ= 0.91, QUANTITY='PRESSURE',    VECTOR=.TRUE. /
+
+&SLCF PBZ= 0.61, QUANTITY='TEMPERATURE', VECTOR=.TRUE. / Ground floor 0.63 m from floor
+&SLCF PBZ= 0.61, QUANTITY='VELOCITY',    VECTOR=.TRUE. /
+&SLCF PBZ= 0.61, QUANTITY='PRESSURE',    VECTOR=.TRUE. /
+
+&SLCF PBZ= 0.30, QUANTITY='TEMPERATURE', VECTOR=.TRUE. / Ground floor 0.30 m from floor
+&SLCF PBZ= 0.30, QUANTITY='VELOCITY',    VECTOR=.TRUE. /
+&SLCF PBZ= 0.30, QUANTITY='PRESSURE',    VECTOR=.TRUE. /
+
+&SLCF PBZ=-1.60, QUANTITY='TEMPERATURE', VECTOR=.TRUE. / Sub-level 1 mid-level height (1.20 m from floor)
+&SLCF PBZ=-1.60, QUANTITY='VELOCITY',    VECTOR=.TRUE. /
+&SLCF PBZ=-1.60, QUANTITY='PRESSURE',    VECTOR=.TRUE. /
+
+&SLCF PBZ=-1.89, QUANTITY='TEMPERATURE', VECTOR=.TRUE. / Sub-level 1 0.91 m from floor
+&SLCF PBZ=-1.89, QUANTITY='VELOCITY',    VECTOR=.TRUE. /
+&SLCF PBZ=-1.89, QUANTITY='PRESSURE',    VECTOR=.TRUE. /
+
+&SLCF PBZ=-2.19, QUANTITY='TEMPERATURE', VECTOR=.TRUE. / Sub-level 1 0.61 m from floor
+&SLCF PBZ=-2.19, QUANTITY='VELOCITY',    VECTOR=.TRUE. /
+&SLCF PBZ=-2.19, QUANTITY='PRESSURE',    VECTOR=.TRUE. /
+
+&SLCF PBZ=-2.50, QUANTITY='TEMPERATURE', VECTOR=.TRUE. / Sub-level 1 0.30 m from floor
+&SLCF PBZ=-2.50, QUANTITY='VELOCITY',    VECTOR=.TRUE. /
+&SLCF PBZ=-2.50, QUANTITY='PRESSURE',    VECTOR=.TRUE. /
+
+&DEVC XYZ=6.85,  7.15, 0.3, QUANTITY='TEMPERATURE', ID='FF1_0p3_m_TEMP' / Firefighter 1
+&DEVC XYZ=6.85,  7.15, 1.0, QUANTITY='TEMPERATURE', ID='FF1_1_m_TEMP'   / 
+&DEVC XYZ=6.85,  7.15, 2.0, QUANTITY='TEMPERATURE', ID='FF1_2_m_TEMP'   /
+
+&DEVC XYZ=6.85,  7.15, 0.3, QUANTITY='VELOCITY', ID='FF1_0p3_m_VEL'     / Firefighter 1
+&DEVC XYZ=6.85,  7.15, 1.0, QUANTITY='VELOCITY', ID='FF1_1_m_VEL'       /
+&DEVC XYZ=6.85,  7.15, 2.0, QUANTITY='VELOCITY', ID='FF1_2_m_VEL'       /
+
+&DEVC XYZ=5.75, 10.50, 0.3, QUANTITY='TEMPERATURE', ID='FF2_0p3_m_TEMP' / Firefighter 2
+&DEVC XYZ=5.75, 10.50, 1.0, QUANTITY='TEMPERATURE', ID='FF2_1_m_TEMP'   /
+&DEVC XYZ=5.75, 10.50, 2.0, QUANTITY='TEMPERATURE', ID='FF2_2_m_TEMP'   /
+
+&DEVC XYZ=5.75, 10.50, 0.3, QUANTITY='VELOCITY', ID='FF2_0p3_m_VEL'     / Firefighter 2
+&DEVC XYZ=5.75, 10.50, 1.0, QUANTITY='VELOCITY', ID='FF2_1_m_VEL'       /
+&DEVC XYZ=5.75, 10.50, 2.0, QUANTITY='VELOCITY', ID='FF2_2_m_VEL'       /
+
+&DEVC XYZ=6.86, 4.80, 3.83, QUANTITY='V-VELOCITY', ID='FRONT_DOOR_V_1' /
+&DEVC XYZ=6.86, 4.80, 3.83, QUANTITY='W-VELOCITY', ID='FRONT_DOOR_W_1' /
+&DEVC XYZ=6.86, 4.80, 3.83, QUANTITY='TEMPERATURE', ID='FRONT_DOOR_TEMP_1' /
+&DEVC XYZ=6.86, 4.80, 3.60, QUANTITY='V-VELOCITY', ID='FRONT_DOOR_V_2' /
+&DEVC XYZ=6.86, 4.80, 3.60, QUANTITY='W-VELOCITY', ID='FRONT_DOOR_W_2' /
+&DEVC XYZ=6.86, 4.80, 3.60, QUANTITY='TEMPERATURE', ID='FRONT_DOOR_TEMP_2' /
+&DEVC XYZ=6.86, 4.80, 3.37, QUANTITY='V-VELOCITY', ID='FRONT_DOOR_V_3' /
+&DEVC XYZ=6.86, 4.80, 3.37, QUANTITY='W-VELOCITY', ID='FRONT_DOOR_W_3' /
+&DEVC XYZ=6.86, 4.80, 3.37, QUANTITY='TEMPERATURE', ID='FRONT_DOOR_TEMP_3' /
+&DEVC XYZ=6.86, 4.80, 3.14, QUANTITY='V-VELOCITY', ID='FRONT_DOOR_V_4' /
+&DEVC XYZ=6.86, 4.80, 3.14, QUANTITY='W-VELOCITY', ID='FRONT_DOOR_W_4' /
+&DEVC XYZ=6.86, 4.80, 3.14, QUANTITY='TEMPERATURE', ID='FRONT_DOOR_TEMP_4' /
+&DEVC XYZ=6.86, 4.80, 2.92, QUANTITY='V-VELOCITY', ID='FRONT_DOOR_V_5' /
+&DEVC XYZ=6.86, 4.80, 2.92, QUANTITY='W-VELOCITY', ID='FRONT_DOOR_W_5' /
+&DEVC XYZ=6.86, 4.80, 2.92, QUANTITY='TEMPERATURE', ID='FRONT_DOOR_TEMP_5' /
+&DEVC XYZ=6.86, 4.80, 2.69, QUANTITY='V-VELOCITY', ID='FRONT_DOOR_V_6' /
+&DEVC XYZ=6.86, 4.80, 2.69, QUANTITY='W-VELOCITY', ID='FRONT_DOOR_W_6' /
+&DEVC XYZ=6.86, 4.80, 2.69, QUANTITY='TEMPERATURE', ID='FRONT_DOOR_TEMP_6' /
+&DEVC XYZ=6.86, 4.80, 2.46, QUANTITY='V-VELOCITY', ID='FRONT_DOOR_V_7' /
+&DEVC XYZ=6.86, 4.80, 2.46, QUANTITY='W-VELOCITY', ID='FRONT_DOOR_W_7' /
+&DEVC XYZ=6.86, 4.80, 2.46, QUANTITY='TEMPERATURE', ID='FRONT_DOOR_TEMP_7' /
+&DEVC XYZ=6.86, 4.80, 2.23, QUANTITY='V-VELOCITY', ID='FRONT_DOOR_V_8' /
+&DEVC XYZ=6.86, 4.80, 2.23, QUANTITY='W-VELOCITY', ID='FRONT_DOOR_W_8' /
+&DEVC XYZ=6.86, 4.80, 2.23, QUANTITY='TEMPERATURE', ID='FRONT_DOOR_TEMP_8' /
+
+#  ===================
+#  = Mass flux ramps =
+#  ===================
+
+# The mass flux of the wood components is based on small-scale cone measurements of wood (HRRPUA of 50 kW/m^2).
+
+# Fire ramp, WOOD_EXTERIOR
+&RAMP ID='WOOD_EXTERIOR_RAMP', T=0,   F=0 /
+&RAMP ID='WOOD_EXTERIOR_RAMP', T=440, F=0 /
+&RAMP ID='WOOD_EXTERIOR_RAMP', T=450, F=1 /
+&RAMP ID='WOOD_EXTERIOR_RAMP', T=540, F=1 /
+
+# The mass fluxes for the following components are normalized by the exposed burning area and heat of combustion.
+# Therefore, the F values of the following mass flux ramps are expressed in terms of kW.
+
+# The following four fuel packages follow a linear ramp from 0 kW at 300 s to their peak HRR at 342 s (time of first window breakage).
+
+# Flashover ramp, COUCH_FLASHOVER_MIDDLE
+&RAMP ID='COUCH_MIDDLE_FLASHOVER_RAMP', T=0,   F=0    /
+&RAMP ID='COUCH_MIDDLE_FLASHOVER_RAMP', T=300, F=0    /
+&RAMP ID='COUCH_MIDDLE_FLASHOVER_RAMP', T=342, F=5000 /
+&RAMP ID='COUCH_MIDDLE_FLASHOVER_RAMP', T=540, F=5000 /
+
+# Flashover ramp, COUCH_FLASHOVER_LEFT
+&RAMP ID='COUCH_LEFT_FLASHOVER_RAMP', T=0,   F=0    /
+&RAMP ID='COUCH_LEFT_FLASHOVER_RAMP', T=300, F=0    /
+&RAMP ID='COUCH_LEFT_FLASHOVER_RAMP', T=342, F=5000 /
+&RAMP ID='COUCH_LEFT_FLASHOVER_RAMP', T=540, F=5000 /
+
+# Flashover ramp, LOUNGE_FLASHOVER
+&RAMP ID='LOUNGE_FLASHOVER_RAMP', T=0,   F=0    /
+&RAMP ID='LOUNGE_FLASHOVER_RAMP', T=300, F=0    /
+&RAMP ID='LOUNGE_FLASHOVER_RAMP', T=342, F=2000 /
+&RAMP ID='LOUNGE_FLASHOVER_RAMP', T=540, F=2000 /
+
+# Flashover ramp, CHAIR_FLASHOVER
+&RAMP ID='CHAIR_FLASHOVER_RAMP', T=0,   F=0    /
+&RAMP ID='CHAIR_FLASHOVER_RAMP', T=300, F=0    /
+&RAMP ID='CHAIR_FLASHOVER_RAMP', T=342, F=2000 /
+&RAMP ID='CHAIR_FLASHOVER_RAMP', T=540, F=2000 /
+
+# Initial fire ramp, COUCH_INITIAL_RIGHT
+# Madrzykowski, D., & Kerber, S. (2009). Fire Fighting Tactics Under Wind Driven Conditions: Laboratory Experiments.
+# King-size mattress ignited by trash can
+# The original HRR ramp was modified after 327 s to remain constant at 5 MW for the remainder of the simulation.
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=0,   F=0    /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=17,  F=5    /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=23,  F=5    /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=25,  F=16   /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=35,  F=12   /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=46,  F=12   /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=53,  F=16   /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=65,  F=20   /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=80,  F=49   /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=98,  F=98   /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=112, F=147  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=125, F=199  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=133, F=225  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=142, F=236  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=144, F=259  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=147, F=266  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=157, F=334  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=161, F=338  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=167, F=367  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=177, F=420  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=184, F=431  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=188, F=424  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=195, F=487  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=197, F=543  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=201, F=622  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=204, F=637  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=205, F=685  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=208, F=715  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=215, F=749  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=222, F=786  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=230, F=839  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=235, F=869  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=241, F=914  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=244, F=996  /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=246, F=1037 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=247, F=1041 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=250, F=1074 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=251, F=1078 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=253, F=1149 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=257, F=1213 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=260, F=1303 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=269, F=1580 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=273, F=1733 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=279, F=1793 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=282, F=1883 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=285, F=2006 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=288, F=2118 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=292, F=2350 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=295, F=2560 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=296, F=2687 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=297, F=2952 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=299, F=3110 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=302, F=3495 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=304, F=3686 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=306, F=3862 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=308, F=3963 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=310, F=4127 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=312, F=4262 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=314, F=4314 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=317, F=4468 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=319, F=4580 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=321, F=4688 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=322, F=4715 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=323, F=4812 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=326, F=4946 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=327, F=5000 /
+&RAMP ID='COUCH_RIGHT_INITIAL_RAMP', T=540, F=5000 /
